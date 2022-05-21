@@ -24,8 +24,8 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-data_path = 'data_du.csv'
-label_path = 'label_du.csv'
+data_path = 'data.csv'
+label_path = 'label.csv'
 
 # Read data and labels
 dataset = pd.read_csv(data_path)
@@ -57,10 +57,7 @@ model.summary()
 
 # 多分类问题的compile
 opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-# keras.optimizers.SGD(lr=0.01, momentum=0.0, decay=0.0, nesterov=False)
-# keras.optimizers.Adagrad(lr=0.01, epsilon=None, decay=0.0)
-# keras.optimizers.Adadelta(lr=1.0, rho=0.95, epsilon=None, decay=0.0)
-# keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+
 model.compile(optimizer=opt,
               loss='categorical_crossentropy',
               metrics=['accuracy'])
@@ -68,4 +65,4 @@ model.compile(optimizer=opt,
 model.fit(X_train, OHE_train, epochs= 20, batch_size= 1)
 model.evaluate(X_test, OHE_test, batch_size= 1)
 
-model.save('model1_adam.h5')
+model.save('ModelName.h5')
