@@ -23,10 +23,10 @@ import numpy as np
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
 
-model = keras.models.load_model('model1_adam.h5')
+model = keras.models.load_model('ModelName.h5')
 
-data_path = 'data_du.csv'
-label_path = 'label_du.csv'
+data_path = 'data.csv'
+label_path = 'label.csv'
 
 # Read data and labels
 dataset = pd.read_csv(data_path)
@@ -49,8 +49,8 @@ OHE_test = keras.utils.to_categorical(Y_test, num_classes=3)
 
 model.evaluate(X_test, OHE_test)
 
-# model.fit(X_train, OHE_train, batch_size= 1, epochs= 10)
-#
-# model.evaluate(X_test, OHE_test)
-#
-# model.save('model1_adam.h5')
+model.fit(X_train, OHE_train, batch_size= 1, epochs= 10)
+
+model.evaluate(X_test, OHE_test)
+
+model.save('ModelName.h5')
