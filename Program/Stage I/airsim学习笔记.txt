@@ -1,0 +1,140 @@
+水平位置控制函数：
+
+def moveToPositionAsync(
+         self,
+         x,          # 位置坐标（北东地坐标系）
+         y,
+         z,
+         velocity,   # 速度
+         timeout_sec=3e38,
+         drivetrain=DrivetrainType.MaxDegreeOfFreedom,
+         yaw_mode=YawMode(),
+         lookahead=-1,
+         adaptive_lookahead=1,
+         vehicle_name="",
+     )
+
+输入参数包括：
+
+    x,y,z：位置坐标（全局坐标系 - 北东地）
+    velocity: 飞行速度（m/s）
+    timeout_sec: 如果没有响应，超时时间
+    drivetrain，yaw_mode: 设置飞行朝向模式和yaw角控制模式
+    lookahead, adaptive_lookahead: 设置路径飞行的时候的yaw角控制模式
+    vehicle_name: 控制的四旋翼名字
+
+x, y, z, velocity 这四个参数是必须要设置的量，指示四旋翼以多大的速度飞往哪个坐标点。后面的几个参数都有其默认值，不用设置也可以。
+
+lookahead 和 adaptive_lookahead 这两个参数是设置当四旋翼飞轨迹的时候的朝向，目前还用不到。
+
+vehicle_name 是将指令发送给哪个四旋翼，当做多个四旋翼协同飞行控制的时候，这个参数就派上用场了，后面会有多机协同编队的教程。
+
+drivetrain 和 yaw_mode 这两个参数的组合可以设置四旋翼的偏航角控制模式，下面详细介绍。
+
+
+偏航角控制模式详解：
+
+drivetrain 参数可以设置为两个量：
+
+    airsim.DrivetrainType.ForwardOnly： 始终朝向速度方向
+    airsim.DrivetrainType.MaxDegreeOfFreedom：手动设置yaw角度
+
+yaw_mode 必须设置为 YawMode() 类型的变量，这个结构体类型包含两个属性：
+
+    YawMode().is_rate：True - 设置角速度；False - 设置角度
+    YawMode().yaw_or_rate：可以是任意浮点数
+
+
+全局坐标系
+    
+固连到大地的x,y,z三个坐标轴的指向分别是北，东，地，也就是朝北是x轴的正方向，朝南就是x轴的负方向。
+全局坐标系的原点位置是大地的某一点（可以在settings文件中设置）。
+
+
+机体坐标系
+
+固连到四旋翼机身，x,y,z三个坐标轴的指向分别是前，右，下，
+也就是飞机的前方是x轴的正方向，飞机后方是x轴的负方向。机体坐标系的原点位置是机体的重心位置。
+
+将 playerStart的旋转都设为0，那么仿真刚开始的时候，四旋翼的机体坐标系与全局坐标系是重合的。
+
+
+点击 运行/Play 按钮后，中间的视角默认是跟随视角，视角的设置决定了摄像机如何跟随四旋翼，对于四旋翼来说，
+默认是跟随/Flywithme模式，对于汽车来说，默认是 SpringArmChase 模式。下面列出这些模式：
+
+    B 按键 跟随/FlyWithMe：以6自由度跟随四旋翼
+    F 按键 FPV：机载摄像头视角
+    \ 按键 地面观察者/GroundObserver：在地面上以XY平面自由度跟随四旋翼
+    M 按键 手动/Manual：手动设置摄像机的位置
+    / 按键 弹性机臂跟随/SpringArmChase：摄像机固定在一个隐形的与汽车连在一起的弹性机臂上，跟随汽车，所以会有一些时延
+    NoDisplay：不显示画面，这可以提高渲染性能，而且不影响 APIs
+
+
+速度控制方法API：
+
+ def moveByVelocityZAsync(
+         self,
+         vx,
+         vy,
+         z,
+         duration,
+         drivetrain=DrivetrainType.MaxDegreeOfFreedom,
+         yaw_mode=YawMode(),
+         vehicle_name="",
+     )
+
+这里的参数有：
+
+    vx：全局坐标系下x轴方向上的速度
+    vy：全局坐标系下y轴方向上的速度
+    z：全局坐标系下的高度
+    duration：持续的时间，单位：秒
+    drivetrain, yaw_mode：用来设置偏航控制（上一篇文章讲过简介）
+    vehicle_name：在多机协同的时候再用到
+
+client.moveByVelocityAsync(vx, vy, vz, duration, drivetrain = DrivetrainType.MaxDegreeOfFreedom, yaw_mode = YawMode(), vehicle_name = '')
+
+四旋翼是一个非线性系统，给一个速度指令，它是不可能瞬时达到的，而且这个速度指令与当前的速度之差越大，到达这个速度指令的调节时间就越长。
+
+
+沿路径飞行
+ client.moveOnPathAsync(path, velocity, timeout_sec = 3e+38, drivetrain = DrivetrainType.MaxDegreeOfFreedom, yaw_mode = YawMode(),lookahead = -1, adaptive_lookahead = 1, vehicle_name = '')
+
+
+
+获取估计状态
+这个状态是由传感器估计的状态，并不是无人机状态的真值。
+AirSim默认的无人机底层飞控 simple_flight 并不支持状态估计，所以如果是simple_flight 飞控，此函数得到的状态与真值相同。
+
+ state = client.getMultirotorState(vehicle_name = '')
+其中无人机的状态变量 state 包含如下：
+
+ class MultirotorState(MsgpackMixin):
+     collision = CollisionInfo()                 # 碰撞信息
+     kinematics_estimated = KinematicsState()    # 状态信息
+     gps_location = GeoPoint()                   # GPS 信息
+     timestamp = np.uint64(0)                    # 时间戳
+     landed_state = LandedState.Landed           # 是否是降落状态
+     rc_data = RCData()                          # 遥控器数据
+     ready = False
+     ready_message = ""
+     can_arm = False
+
+状态信息的定义：
+class KinematicsState(MsgpackMixin):
+     position = Vector3r()               # 位置
+     orientation = Quaternionr()         # 姿态角
+     linear_velocity = Vector3r()        # 速度
+     angular_velocity = Vector3r()       # 机体角速率
+     linear_acceleration = Vector3r()    # 加速度
+     angular_acceleration = Vector3r()   # 机体角加速度
+
+GPS 信息包含：
+ class GeoPoint(MsgpackMixin):
+     latitude = 0.0
+     longitude = 0.0
+     altitude = 0.0
+
+获取状态真值
+ kinematics_state = client.simGetGroundTruthKinematics(vehicle_name = '')
+

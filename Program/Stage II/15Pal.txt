@@ -1,0 +1,33 @@
+{
+  "SeeDocsAt": "https://github.com/Microsoft/AirSim/blob/master/docs/settings.md",
+  "SettingsVersion": 1.2,
+  "SimMode": "Multirotor",
+  "ViewMode": "FlyWithMe",
+  "EnableTrace": true,
+
+  "Vehicles": {
+    "Drone0": {
+      "VehicleType": "SimpleFlight",
+      "X": 0,
+      "Y": 0,
+      "Z": 0,
+      "Yaw": 180
+    },
+
+    "Drone1": {
+      "VehicleType": "SimpleFlight",
+      "X": 0,
+      "Y": 15,
+      "Z": 0,
+      "Yaw": 180
+    },
+
+    "Drone2": {
+      "VehicleType": "SimpleFlight",
+      "X": 0,
+      "Y": -15,
+      "Z": 0,
+      "Yaw": 180
+    }
+  }
+}
